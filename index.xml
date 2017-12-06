@@ -6,8 +6,189 @@
     <description>Recent content on Houjj&#39;s book reviews</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 17 Oct 2016 10:42:26 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 06 Dec 2017 10:42:26 +0800</lastBuildDate>
     <atom:link href="https://webdroid163.github.io/books/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>rabbitmq install note</title>
+      <link>https://webdroid163.github.io/books/post/rabbitmq_install/</link>
+      <pubDate>Wed, 06 Dec 2017 10:42:26 +0800</pubDate>
+      
+      <guid>https://webdroid163.github.io/books/post/rabbitmq_install/</guid>
+      <description>
+
+&lt;p&gt;RabbitMQ是一个开源的AMQP实现，服务器端用Erlang语言编写，支持多种客户端，如：Python、Ruby、.NET、Java、JMS、C、PHP、ActionScript、XMPP、STOMP等，支持AJAX。用于在分布式系统中存储转发消息，在易用性、扩展性、高可用性等方面表现不俗。&lt;/p&gt;
+
+&lt;p&gt;运行模式大概有3种：&lt;br /&gt;
+单一模式：非集群模式，单台。&lt;/p&gt;
+
+&lt;p&gt;普通模式：RabbitMQ默认的集群模式。
+对于Queue来说，消息实体只存在于其中一个节点，A、B两个节点仅有相同的元数据，即队列结构。当消息进入A节点的Queue中后，consumer从B节点拉取时，RabbitMQ会临时在A、B间进行消息传输，把A中的消息实体取出并经过B发送给consumer。
+所以consumer应尽量连接每一个节点，从中取消息。即对于同一个逻辑队列，要在多个节点建立物理Queue。否则无论consumer连A或B，出口总在A，会产生瓶颈。
+该模式存在一个问题就是当A节点故障后，B节点无法取到A节点中还未消费的消息实体。
+如果做了消息持久化，那么得等A节点恢复，然后才可被消费；如果没有持久化会丢失消息。&lt;/p&gt;
+
+&lt;p&gt;镜像模式：Queue同时存在多个节点，可通过改模式实现HA高可用&lt;br /&gt;
+该模式解决了上述问题，其实质和普通模式不同之处在于，消息实体会主动在镜像节点间同步，而不是在consumer取数据时临时拉取。
+该模式带来的副作用也很明显，除了降低系统性能外，如果镜像队列数量过多，加之大量的消息进入，集群内部的网络带宽将会被这种同步通讯大大消耗掉。&lt;/p&gt;
+
+&lt;h2 id=&#34;单一模式&#34;&gt;单一模式&lt;/h2&gt;
+
+&lt;h4 id=&#34;installing-安装&#34;&gt;installing(安装)&lt;/h4&gt;
+
+&lt;p&gt;系统centos7&lt;/p&gt;
+
+&lt;p&gt;wget &lt;a href=&#34;https://dl.bintray.com/rabbitmq/rabbitmq-server-rpm/rabbitmq-server-3.6.14-1.el7.noarch.rpm&#34;&gt;https://dl.bintray.com/rabbitmq/rabbitmq-server-rpm/rabbitmq-server-3.6.14-1.el7.noarch.rpm&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;安装RabbitMQ Server&lt;br /&gt;
+rpm -ivh rabbitmq-server-3.6.14-1.el7.noarch.rpm&lt;br /&gt;
+warning: rabbitmq-server-3.6.14-1.el7.noarch.rpm: Header V4 RSA/SHA512 Signature, key ID 6026dfca: NOKEY&lt;br /&gt;
+error: Failed dependencies:
+    erlang &amp;gt;= R16B-03 is needed by rabbitmq-server-3.6.14-1.el7.noarch
+    socat is needed by rabbitmq-server-3.6.14-1.el7.noarch&lt;/p&gt;
+
+&lt;p&gt;yum search erlang socat&lt;/p&gt;
+
+&lt;p&gt;yum install erlang&lt;br /&gt;
+如果yum出现“No module named yum”错误，修改yum文件
+vi /usr/bin/yum
+!/usr/bin/python 修改为 #!/usr/bin/python2.4&lt;/p&gt;
+
+&lt;p&gt;安装完成后可以用erl命令查看是否安装成功&lt;/p&gt;
+
+&lt;p&gt;erl -version&lt;/p&gt;
+
+&lt;h4 id=&#34;安装web管理界面插件&#34;&gt;安装Web管理界面插件&lt;/h4&gt;
+
+&lt;p&gt;rabbitmq-plugins enable rabbitmq_management&lt;/p&gt;
+
+&lt;p&gt;安装成功后会显示如下内容&lt;/p&gt;
+
+&lt;p&gt;The following plugins have been enabled:
+  mochiweb
+  webmachine
+  rabbitmq_web_dispatch
+  amqp_client
+  rabbitmq_management_agent
+  rabbitmq_management
+Plugin configuration has changed. Restart RabbitMQ for changes to take effect.&lt;/p&gt;
+
+&lt;h4 id=&#34;登录web管理界面&#34;&gt;登录Web管理界面&lt;/h4&gt;
+
+&lt;p&gt;安装好插件并开启服务后，可以浏览器输入localhost:15672,账号密码全输入guest即可登录。&lt;/p&gt;
+
+&lt;p&gt;或者通过如下方式安装：&lt;/p&gt;
+
+&lt;p&gt;基于 epel 源进行安装（优先）&lt;/p&gt;
+
+&lt;p&gt;系统centos6&lt;/p&gt;
+
+&lt;p&gt;rpm -Uvh &lt;a href=&#34;http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm&#34;&gt;http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm&lt;/a&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;安装依赖环境erlang
+yum install erlang -y&lt;/p&gt;
+
+&lt;p&gt;安装rabbitmq
+yum install rabbitmq-server -y&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h4 id=&#34;启动rabbitmq&#34;&gt;启动RabbitMQ&lt;/h4&gt;
+
+&lt;p&gt;Start the Server&lt;/p&gt;
+
+&lt;p&gt;The server is not started as a daemon by default when the RabbitMQ server package is installed.
+To start the daemon by default when the system boots, as an administrator run&lt;/p&gt;
+
+&lt;p&gt;chkconfig rabbitmq-server on.&lt;/p&gt;
+
+&lt;p&gt;As an administrator, start and stop the server as usual using&lt;/p&gt;
+
+&lt;p&gt;/sbin/service rabbitmq-server stop/start/etc.&lt;/p&gt;
+
+&lt;p&gt;Note: The server is set up to run as system user rabbitmq.
+If you change the location of the Mnesia database or the logs, you must ensure the files are
+owned by this user (and also update the environment variables).&lt;/p&gt;
+
+&lt;p&gt;如遇权限问题，尝试下面的操作：
+禁用 SELinux ，修改 /etc/selinux/config
+SELINUX=disabled
+修改后重启系统&lt;/p&gt;
+
+&lt;h2 id=&#34;配置&#34;&gt;配置&lt;/h2&gt;
+
+&lt;p&gt;查找默认配置位置：find / -name &amp;ldquo;rabbitmq.config.example&amp;rdquo;，
+我这边搜索结果是：/usr/share/doc/rabbitmq-server-3.6.1/rabbitmq.config.example&lt;br /&gt;
+复制默认配置：cp /usr/share/doc/rabbitmq-server-3.6.1/rabbitmq.config.example /etc/rabbitmq/&lt;br /&gt;
+修改配置文件名：cd /etc/rabbitmq ; mv rabbitmq.config.example rabbitmq.config&lt;br /&gt;
+编辑配置文件，开启用户远程访问：vim rabbitmq.config&lt;br /&gt;
+在 64 行，默认有这样一句话：%% {loopback_users, []},，注意，该语句最后有一个逗号，等下是要去掉的&lt;br /&gt;
+我们需要改为：{loopback_users, []}，&lt;br /&gt;
+开启 Web 界面管理：rabbitmq-plugins enable rabbitmq_management&lt;br /&gt;
+如果你是用 epel 安装的话，则是这样运行：cd /usr/lib/rabbitmq/bin;./rabbitmq-plugins enable rabbitmq_management&lt;br /&gt;
+重启 RabbitMQ 服务：service rabbitmq-server restart&lt;br /&gt;
+开放防火墙端口：&lt;br /&gt;
+sudo iptables -I INPUT -p tcp -m tcp &amp;ndash;dport 15672 -j ACCEPT&lt;br /&gt;
+sudo iptables -I INPUT -p tcp -m tcp &amp;ndash;dport 5672 -j ACCEPT&lt;br /&gt;
+sudo service iptables save&lt;br /&gt;
+sudo service iptables restart&lt;br /&gt;
+浏览器访问：&lt;a href=&#34;http://192.168.1.114:15672&#34;&gt;http://192.168.1.114:15672&lt;/a&gt; 默认管理员账号：guest 默认管理员密码：guest&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;添加新授权用户（如下图所示）：&lt;br /&gt;
+点击菜单，admin&lt;br /&gt;
+loguser&lt;br /&gt;
+loguser&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;添加 Host&lt;br /&gt;
+admin/ Virtual Hosts / Add a new virtual host&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;给添加的 Host 设置权限
+virtual host : 选择新添加的host名称&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;交换机绑定队列&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;wget &lt;a href=&#34;https://raw.githubusercontent.com/rabbitmq/rabbitmq-management/rabbitmq_v3_6_14/bin/rabbitmqadmin&#34;&gt;https://raw.githubusercontent.com/rabbitmq/rabbitmq-management/rabbitmq_v3_6_14/bin/rabbitmqadmin&lt;/a&gt;
+chmod +x rabbitmqadmin&lt;/p&gt;
+
+&lt;p&gt;启用RabbitMQ的web管理功能
+/usr/lib/rabbitmq/bin/rabbitmq-plugins enable rabbitmq_management
+/usr/lib/rabbitmq/bin/rabbitmq-plugins list&lt;/p&gt;
+
+&lt;h2 id=&#34;集群配置&#34;&gt;集群配置&lt;/h2&gt;
+
+&lt;p&gt;通过 Erlang 的分布式特性（magic cookie 认证节点）进行 RabbitMQ 集群，各 RabbitMQ 服务为对等节点，即每个节点都提供服务给客户端连接，进行消息发送与接收。
+这些节点通过 RabbitMQ HA 队列（镜像队列）进行消息队列结构复制。本文中搭建 3 个节点，并且都是磁盘节点（所有节点状态保持一致，节点完全对等），只要有任何一个节点能够工作，RabbitMQ 集群对外就能提供服务。&lt;/p&gt;
+
+&lt;h2 id=&#34;rabbitmq-管理&#34;&gt;rabbitmq 管理&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/judasn/Linux-Tutorial/blob/master/RabbitMQ-Install-And-Settings.md&#34;&gt;https://github.com/judasn/Linux-Tutorial/blob/master/RabbitMQ-Install-And-Settings.md&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Management Command Line Tool&lt;/p&gt;
+
+&lt;p&gt;Getting Started&lt;/p&gt;
+
+&lt;p&gt;UNIX-like operating system users need to copy rabbitmqadmin to a directory in PATH, e.g. /usr/local/bin.&lt;/p&gt;
+
+&lt;p&gt;Windows users will need to ensure Python is on their PATH, and invoke rabbitmqadmin as python.exe rabbitmqadmin.&lt;/p&gt;
+
+&lt;p&gt;Invoke rabbitmqadmin &amp;ndash;help for usage instructions. You can:&lt;/p&gt;
+
+&lt;p&gt;测试：
+Connect to another host as another user&lt;/p&gt;
+
+&lt;p&gt;rabbitmqadmin -H 127.0.0.1 -uloguser -p loguser list vhosts&lt;/p&gt;
+
+&lt;p&gt;Publish a message&lt;/p&gt;
+
+&lt;p&gt;rabbitmqadmin publish exchange=amq.default routing_key=test payload=&amp;ldquo;hello, world&amp;rdquo;&lt;/p&gt;
+
+&lt;p&gt;Close all connections&lt;/p&gt;
+
+&lt;p&gt;rabbitmqadmin -f tsv -q list connections name | while read conn ; do rabbitmqadmin -q close connection name=&amp;ldquo;${conn}&amp;rdquo; ; done&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>good to great now</title>
@@ -15,7 +196,8 @@
       <pubDate>Mon, 17 Oct 2016 10:42:26 +0800</pubDate>
       
       <guid>https://webdroid163.github.io/books/post/good-to-great/</guid>
-      <description>&lt;p&gt;I read &lt;strong&gt;Good to Great in January 2016&lt;/strong&gt;. An awesome read sharing detailed analysis on how good companies became great.&lt;/p&gt;
+      <description>&lt;p&gt;I read &lt;strong&gt;Good to Great in January 2016&lt;/strong&gt;. An awesome read sharing detailed analysis on how good companies became great.
+I read &lt;strong&gt;Good to Great in January 2016&lt;/strong&gt;. An awesome read sharing detailed analysis on how good companies became great.&lt;/p&gt;
 </description>
     </item>
     

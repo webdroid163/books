@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+<meta name="pinterest" content="nopin">
+<meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
+<meta name="theme-color" content="#263238">
+
+<meta name="generator" content="Hugo 0.17" />
+
+<link rel="apple-touch-icon" href="https://webdroid163.github.io/books/images/logo.png">
+
+
+<link rel="canonical" href="https://webdroid163.github.io/books/post/rabbitmq_install/">
+
+
+    <link href="//fonts.googleapis.com/css?family=Noto+Sans:400,700|Montserrat" rel="stylesheet">
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/solarized_dark.min.css">
+    <title>rabbitmq install note - Houjj&#39;s book reviews</title>
+    
+<meta property="og:title" content="rabbitmq install note - Houjj&#39;s book reviews">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://webdroid163.github.io/books/post/rabbitmq_install/">
+<meta property="og:image" content="https://webdroid163.github.io/books/images/default.png">
+<meta property="og:site_name" content="Houjj&#39;s book reviews">
+<meta property="og:description" content="RabbitMQ是一个开源的AMQP实现，服务器端用Erlang语言编写，支持多种客户端，如：Python、Ruby、.NET、Java、JMS、C、PHP、ActionScript、XMPP、STOMP等，支持AJAX。用于在分布式系统中存储转发消息，在易用性、扩展性、高可用性等方面表现不俗。运行模式大概有3种：单一模式：非集群模式，单台。普通模式：RabbitMQ默认的集群模式。 对于Queue来说，消息实体只存在于其中一个节点，A、B两个节点仅有相同的元数据，即队列结构。当消息进入A节点的Queue中后，consumer从B节点拉取时，RabbitMQ会临时在A、B间进行消息传输，把A中的消息实体取出并经过B发送给consumer。 所以consumer应尽量连接每一个节点，从中取消息。即对于同一个逻辑队列，要在多个节点建立物理Queue。否则无论consumer连A或B，出口总在A，会产生瓶颈。 该模式存在一个问题就是当A节点故障后，B节点无法取到A节点中还未消费的消息实体。 如果做了消息持久化，那么得等A节点恢复，然后才可被消费；如果没有持久化会丢失消息。镜像模式：Queue同时存在多个节点，可通过改模式实现HA高可用该模式解决了上述问题，其实质和普通模式不同之处在于，消息实体会主动在镜像节点间同步，而不是在consumer取数据时临时拉取。 该模式带来的副作用也很明显，除了降低系统性能外，如果镜像队列数量过多，加之大量的消息进入，集群内部的网络带宽将会被这种同步通讯大大消耗掉。单一模式 installing(安装) 系统centos7wget https://dl.bintray.com/rabbitmq/rabbitmq-server-rpm/rabbitmq-server-3.6.14-1.el7.noarch.rpm安装RabbitMQ Serverrpm -ivh rabbitmq-server-3.6.14-1.el7.noarch.rpmwarning: rabbitmq-server-3.6.14-1.el7.noarch.rpm: Header V4 RSA/SHA512 Signature, key ID 6026dfca: NOKEYerror: Failed dependencies: erlang &amp;gt;= R16B-03 is needed by rabbitmq-server-3.6.14-1.el7.noarch socat is needed by rabbitmq-server-3.6.14-1.el7.noarchyum search erlang socatyum install erlang如果yum出现“No module named yum”错误，修改yum文件 vi /usr/bin/yum !/usr/bin/python 修改为 #!/usr/bin/python2.4安装完成后可以用erl命令查看是否安装成功erl -version安装Web管理界面插件 rabbitmq-plugins enable rabbitmq_management">
+<meta property="og:locale" content="ja_JP">
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="Houjj&#39;s book reviews">
+<meta name="twitter:url" content="https://webdroid163.github.io/books/post/rabbitmq_install/">
+<meta name="twitter:title" content="rabbitmq install note - Houjj&#39;s book reviews">
+<meta name="twitter:description" content="RabbitMQ是一个开源的AMQP实现，服务器端用Erlang语言编写，支持多种客户端，如：Python、Ruby、.NET、Java、JMS、C、PHP、ActionScript、XMPP、STOMP等，支持AJAX。用于在分布式系统中存储转发消息，在易用性、扩展性、高可用性等方面表现不俗。运行模式大概有3种：单一模式：非集群模式，单台。普通模式：RabbitMQ默认的集群模式。 对于Queue来说，消息实体只存在于其中一个节点，A、B两个节点仅有相同的元数据，即队列结构。当消息进入A节点的Queue中后，consumer从B节点拉取时，RabbitMQ会临时在A、B间进行消息传输，把A中的消息实体取出并经过B发送给consumer。 所以consumer应尽量连接每一个节点，从中取消息。即对于同一个逻辑队列，要在多个节点建立物理Queue。否则无论consumer连A或B，出口总在A，会产生瓶颈。 该模式存在一个问题就是当A节点故障后，B节点无法取到A节点中还未消费的消息实体。 如果做了消息持久化，那么得等A节点恢复，然后才可被消费；如果没有持久化会丢失消息。镜像模式：Queue同时存在多个节点，可通过改模式实现HA高可用该模式解决了上述问题，其实质和普通模式不同之处在于，消息实体会主动在镜像节点间同步，而不是在consumer取数据时临时拉取。 该模式带来的副作用也很明显，除了降低系统性能外，如果镜像队列数量过多，加之大量的消息进入，集群内部的网络带宽将会被这种同步通讯大大消耗掉。单一模式 installing(安装) 系统centos7wget https://dl.bintray.com/rabbitmq/rabbitmq-server-rpm/rabbitmq-server-3.6.14-1.el7.noarch.rpm安装RabbitMQ Serverrpm -ivh rabbitmq-server-3.6.14-1.el7.noarch.rpmwarning: rabbitmq-server-3.6.14-1.el7.noarch.rpm: Header V4 RSA/SHA512 Signature, key ID 6026dfca: NOKEYerror: Failed dependencies: erlang &amp;gt;= R16B-03 is needed by rabbitmq-server-3.6.14-1.el7.noarch socat is needed by rabbitmq-server-3.6.14-1.el7.noarchyum search erlang socatyum install erlang如果yum出现“No module named yum”错误，修改yum文件 vi /usr/bin/yum !/usr/bin/python 修改为 #!/usr/bin/python2.4安装完成后可以用erl命令查看是否安装成功erl -version安装Web管理界面插件 rabbitmq-plugins enable rabbitmq_management">
+<meta name="twitter:image" content="https://webdroid163.github.io/books/images/default.png">
+
+
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "Article",
+    "mainEntityOfPage":{
+      "@type":"WebPage",
+      "@id":"https:\/\/webdroid163.github.io\/books\/"
+    },
+    "headline": "rabbitmq install note - Houjj\x27s book reviews",
+    "image": {
+      "@type": "ImageObject",
+      "url": "https:\/\/webdroid163.github.io\/books\/images\/default.png",
+      "height": 700,
+      "width": 700
+    },
+    "datePublished": "2017-12-06T10:42:26JST",
+    "dateModified": "2017-12-06T10:42:26JST",
+    "author": {
+      "@type": "Person",
+      "name": "Houjj\x27s book reviews",
+      "image": "https:\/\/webdroid163.github.io\/books\/images/logo.png"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "Houjj\x27s book reviews",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https:\/\/webdroid163.github.io\/books\/images/logo.png",
+        "height": 60,
+        "width": 60
+      }
+    },
+    "description": "RabbitMQ是一个开源的AMQP实现，服务器端用Erlang语言编写，支持多种客户端，如：Python、Ruby、.NET、Java、JMS、C、PHP、ActionScript、XMPP、STOMP等，支持AJAX。用于在分布式系统中存储转发消息，在易用性、扩展性、高可用性等方面表现不俗。\n运行模式大概有3种：\n单一模式：非集群模式，单台。\n普通模式：RabbitMQ默认的集群模式。 对于Queue来说，消息实体只存在于其中一个节点，A、B两个节点仅有相同的元数据，即队列结构。当消息进入A节点的Queue中后，consumer从B节点拉取时，RabbitMQ会临时在A、B间进行消息传输，把A中的消息实体取出并经过B发送给consumer。 所以consumer应尽量连接每一个节点，从中取消息。即对于同一个逻辑队列，要在多个节点建立物理Queue。否则无论consumer连A或B，出口总在A，会产生瓶颈。 该模式存在一个问题就是当A节点故障后，B节点无法取到A节点中还未消费的消息实体。 如果做了消息持久化，那么得等A节点恢复，然后才可被消费；如果没有持久化会丢失消息。\n镜像模式：Queue同时存在多个节点，可通过改模式实现HA高可用\n该模式解决了上述问题，其实质和普通模式不同之处在于，消息实体会主动在镜像节点间同步，而不是在consumer取数据时临时拉取。 该模式带来的副作用也很明显，除了降低系统性能外，如果镜像队列数量过多，加之大量的消息进入，集群内部的网络带宽将会被这种同步通讯大大消耗掉。\n单一模式 installing(安装) 系统centos7\nwget https:\/\/dl.bintray.com\/rabbitmq\/rabbitmq-server-rpm\/rabbitmq-server-3.6.14-1.el7.noarch.rpm\n安装RabbitMQ Server\nrpm -ivh rabbitmq-server-3.6.14-1.el7.noarch.rpm\nwarning: rabbitmq-server-3.6.14-1.el7.noarch.rpm: Header V4 RSA\/SHA512 Signature, key ID 6026dfca: NOKEY\nerror: Failed dependencies: erlang \x26gt;= R16B-03 is needed by rabbitmq-server-3.6.14-1.el7.noarch socat is needed by rabbitmq-server-3.6.14-1.el7.noarch\nyum search erlang socat\nyum install erlang\n如果yum出现“No module named yum”错误，修改yum文件 vi \/usr\/bin\/yum !\/usr\/bin\/python 修改为 #!\/usr\/bin\/python2.4\n安装完成后可以用erl命令查看是否安装成功\nerl -version\n安装Web管理界面插件 rabbitmq-plugins enable rabbitmq_management"
+  }
+</script>
+
+
+    <style>
+      html { font-size: 18px;}@media (max-width: 768px) { html { font-size: 15px; }}body { font-family: 'Noto Sans','Hiragino Kaku Gothic Pro',メイリオ,Meiryo,sans-serif; font-size: inherit; font-weight: 300; line-height: 1rem; background-color: #eceff1;}p { margin: 0;}a { color: #4caf50;}a:hover { text-decoration: none; color: #388e3c;}ul,ol { margin: 0; padding: 0;}h1, h2, h3, h4, h5, h6 { margin: 0; font-weight: 700;}h1 { font-size: 1.8rem; line-height: 2rem; margin: 1.5rem 0; }h2 { font-size: 1.4rem; line-height: 2rem; margin: 1.5rem 0; }h3 { font-size: 1.2rem; line-height: 1.5rem; margin: 1.5rem 0; }h4, h5, h6 { font-size: 1rem; line-height: 1.5rem; margin: 1.5rem 0; }main { display: block;}.content-inner { padding: 1rem 2rem;}.content-inner.thin { padding: .5rem 1rem;}@media (max-width: 768px) { .content-inner { padding: 1rem; }}/* Override */.container { position: relative;}/* Parts:layouts */.l-header { background-color: #fff; margin-bottom: 1rem; padding: 1rem 0; text-align: center;}.l-footer { font-size: .8rem; padding: 1.5rem 0;}/* Parts:menu */.p-menu { position: absolute; right: 15px; top: 0;}/* Parts:terms */.p-terms { list-style: none;}.p-terms .terms-title { margin: 0;}.p-terms a { display: inline-block; padding: .25rem 0;}.p-terms.inline li { display: inline-block; font-size: .8rem;}.p-terms.inline li::after { content: ',';}.p-terms.inline li:last-child::after { content: '';}/* Parts:paging */.p-paging { margin-bottom: 1.5rem; text-align: center;}.p-paging a { display: inline-block; padding: 1rem 1.5rem; margin: 0 .5rem; background-color: #cfd8dc; color: #263238;}/* Parts:section */section { margin-bottom: 1.5rem;}section>header { font-size: .8rem; font-weight: 700; margin-bottom: .5rem; text-transform: uppercase;}section>header a { color: #333; text-decoration: underline;}section.article-footer { margin-bottom: 1rem;}section.article-footer>header { margin-bottom: 0;}/* Parts:logo */.p-logo { display: inline-block; font-family: 'Montserrat', sans-serif; text-transform: uppercase;}.p-logo a { display: inline-block; font-size: 1.4rem; line-height: 2rem; color: #000;}/* Parts:crumb */.p-crumb ol { list-style: none; margin-bottom: 1rem;}.p-crumb li { display: inline; margin-right: .25rem; font-size: .8rem; color: #607d8b;}.p-crumb li::after { content: '/'; margin-left: .25rem;}.p-crumb li:last-child::after { content: '';}/* Parts:facts */.p-facts { list-style: none; font-size: .8rem; margin-bottom: 1rem;}.p-facts li { display: inline-block; margin-right: .5rem; color: #90a4ae;}.p-facts li i { margin-right: .5rem; color: #cfd8dc;}/* Parts:article */article { background-color: #fff;}article .title { margin: 0; margin-bottom: .5rem; font-weight: 700;}article .title a { color: #000;}article .thumb { display: block; background-image: url(https://webdroid163.github.io/books/images/default.jpg); background-position: center; background-size: cover;}article .summary { margin-bottom: .5rem; max-height: 5rem; overflow: hidden;}article.single .thumb { height: 18rem;}@media (max-width: 768px) { article.single .thumb { height: 12rem; }}article.li { margin-bottom: 1rem;}article.li .thumb { height: 7.5rem; margin-bottom: .5rem;}article.li.sm { background-color: transparent; margin-bottom: .5rem;}article.li.sm>header { padding: .5rem 0;}article.li.sm .title { font-size: .8rem; line-height: 1rem; margin-bottom: .25rem;}article.li.sm .p-facts { font-size: .6rem; margin-bottom: 0;}article.li.sm .thumb { float: left; margin-right: .5rem; height: 3rem; width: 3rem;}.article-body h2 { padding: 1rem 0; border-bottom: 2px solid #eceff1;}.article-body h2:first-child { margin-top: 0; }.article-body h3 { color: #428bca;}.article-body h4 { border-left: solid .25rem #428bca; padding: 0 .5rem;}.article-body p { margin: 1.5rem 0; line-height: 1.5rem;}.article-body a { text-decoration: underline;}.article-body ul,.article-body ol { padding-left: 1.5rem;}.article-body code { display: inline-block; font-family: Menlo, consolas, monospace; font-size: .8rem; padding: 0 .5rem; line-height: 1.5rem;}.article-body pre { margin: 1.5rem 0; padding: 0; font-size: .8rem; border: none; border-radius: 0;}.article-body pre code { display: block; line-height: 1rem; padding: 1rem;}.article-body blockquote { margin: 1.5rem 0; padding: .5rem 0; font-size: .8rem; border-top: 1px solid #eceff1; border-bottom: 1px solid #eceff1; color: #607d8b;}.article-body blockquote p { margin: .5rem 0; line-height: 1rem;}.article-body strong { box-shadow: 0 -.5rem 0 0 #90caf9 inset;}.article-body em { font-style: normal; font-weight: 700; color: #03a9f4;}.article-body figure { margin: 1.5rem 0; }.article-body figure img { max-width: 100%; }.article-body figure.left,.article-body figure.right { width: 15rem; height: 12rem; margin-top: 0;}.article-body figure.left { float: left; margin-right: 1rem; }.article-body figure.right { float: right; margin-left: 1rem; }@media (max-width: 768px) { .article-body figure.left, .article-body figure.right { float: none; margin: 0; width: auto; height: auto; }}.article-body figcaption { padding: .5rem 0; font-size: .8rem; text-align: center;}.article-body figcaption a { color: #263238;}
+    </style>
+  </head>
+
+  <body>
+    
+    
+    
+
+    <header class="l-header">
+      <div class="container">
+        <div class="p-logo">
+          <a href="https://webdroid163.github.io/books/">Houjj&#39;s book reviews</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="container">
+        
+<div class="row">
+  <div class="col-md-8">
+
+    <nav class="p-crumb">
+      <ol>
+        <li><a href="https://webdroid163.github.io/books/"><i class="fa fa-home" aria-hidden="true"></i></a></li>
+        
+        <li itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="https://webdroid163.github.io/books/post/" itemprop="url"><span itemprop="title">post</span></a></li>
+        
+        <li class="active">rabbitmq install note</li>
+      </ol>
+    </nav>
+
+    <article class="single">
+
+  <a href="https://webdroid163.github.io/books/post/rabbitmq_install/" class="thumb"></a>
+  <div class="content-inner">
+    <h1 class="title">rabbitmq install note</h1>
+
+    <ul class="p-facts">
+      <li><i class="fa fa-calendar" aria-hidden="true"></i><time datetime="2017-12-06T10:42:26JST">Dec 6, 2017</time></li>
+      <li><i class="fa fa-bookmark" aria-hidden="true"></i><a href="https://webdroid163.github.io/books/post/">post</a></li>
+      
+    </ul>
+
+    <div class="article-body">
+
+<p>RabbitMQ是一个开源的AMQP实现，服务器端用Erlang语言编写，支持多种客户端，如：Python、Ruby、.NET、Java、JMS、C、PHP、ActionScript、XMPP、STOMP等，支持AJAX。用于在分布式系统中存储转发消息，在易用性、扩展性、高可用性等方面表现不俗。</p>
+
+<p>运行模式大概有3种：<br />
+单一模式：非集群模式，单台。</p>
+
+<p>普通模式：RabbitMQ默认的集群模式。
+对于Queue来说，消息实体只存在于其中一个节点，A、B两个节点仅有相同的元数据，即队列结构。当消息进入A节点的Queue中后，consumer从B节点拉取时，RabbitMQ会临时在A、B间进行消息传输，把A中的消息实体取出并经过B发送给consumer。
+所以consumer应尽量连接每一个节点，从中取消息。即对于同一个逻辑队列，要在多个节点建立物理Queue。否则无论consumer连A或B，出口总在A，会产生瓶颈。
+该模式存在一个问题就是当A节点故障后，B节点无法取到A节点中还未消费的消息实体。
+如果做了消息持久化，那么得等A节点恢复，然后才可被消费；如果没有持久化会丢失消息。</p>
+
+<p>镜像模式：Queue同时存在多个节点，可通过改模式实现HA高可用<br />
+该模式解决了上述问题，其实质和普通模式不同之处在于，消息实体会主动在镜像节点间同步，而不是在consumer取数据时临时拉取。
+该模式带来的副作用也很明显，除了降低系统性能外，如果镜像队列数量过多，加之大量的消息进入，集群内部的网络带宽将会被这种同步通讯大大消耗掉。</p>
+
+<h2 id="单一模式">单一模式</h2>
+
+<h4 id="installing-安装">installing(安装)</h4>
+
+<p>系统centos7</p>
+
+<p>wget <a href="https://dl.bintray.com/rabbitmq/rabbitmq-server-rpm/rabbitmq-server-3.6.14-1.el7.noarch.rpm">https://dl.bintray.com/rabbitmq/rabbitmq-server-rpm/rabbitmq-server-3.6.14-1.el7.noarch.rpm</a></p>
+
+<p>安装RabbitMQ Server<br />
+rpm -ivh rabbitmq-server-3.6.14-1.el7.noarch.rpm<br />
+warning: rabbitmq-server-3.6.14-1.el7.noarch.rpm: Header V4 RSA/SHA512 Signature, key ID 6026dfca: NOKEY<br />
+error: Failed dependencies:
+    erlang &gt;= R16B-03 is needed by rabbitmq-server-3.6.14-1.el7.noarch
+    socat is needed by rabbitmq-server-3.6.14-1.el7.noarch</p>
+
+<p>yum search erlang socat</p>
+
+<p>yum install erlang<br />
+如果yum出现“No module named yum”错误，修改yum文件
+vi /usr/bin/yum
+!/usr/bin/python 修改为 #!/usr/bin/python2.4</p>
+
+<p>安装完成后可以用erl命令查看是否安装成功</p>
+
+<p>erl -version</p>
+
+<h4 id="安装web管理界面插件">安装Web管理界面插件</h4>
+
+<p>rabbitmq-plugins enable rabbitmq_management</p>
+
+<p>安装成功后会显示如下内容</p>
+
+<p>The following plugins have been enabled:
+  mochiweb
+  webmachine
+  rabbitmq_web_dispatch
+  amqp_client
+  rabbitmq_management_agent
+  rabbitmq_management
+Plugin configuration has changed. Restart RabbitMQ for changes to take effect.</p>
+
+<h4 id="登录web管理界面">登录Web管理界面</h4>
+
+<p>安装好插件并开启服务后，可以浏览器输入localhost:15672,账号密码全输入guest即可登录。</p>
+
+<p>或者通过如下方式安装：</p>
+
+<p>基于 epel 源进行安装（优先）</p>
+
+<p>系统centos6</p>
+
+<p>rpm -Uvh <a href="http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm">http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm</a></p>
+
+<blockquote>
+<p>安装依赖环境erlang
+yum install erlang -y</p>
+
+<p>安装rabbitmq
+yum install rabbitmq-server -y</p>
+</blockquote>
+
+<h4 id="启动rabbitmq">启动RabbitMQ</h4>
+
+<p>Start the Server</p>
+
+<p>The server is not started as a daemon by default when the RabbitMQ server package is installed.
+To start the daemon by default when the system boots, as an administrator run</p>
+
+<p>chkconfig rabbitmq-server on.</p>
+
+<p>As an administrator, start and stop the server as usual using</p>
+
+<p>/sbin/service rabbitmq-server stop/start/etc.</p>
+
+<p>Note: The server is set up to run as system user rabbitmq.
+If you change the location of the Mnesia database or the logs, you must ensure the files are
+owned by this user (and also update the environment variables).</p>
+
+<p>如遇权限问题，尝试下面的操作：
+禁用 SELinux ，修改 /etc/selinux/config
+SELINUX=disabled
+修改后重启系统</p>
+
+<h2 id="配置">配置</h2>
+
+<p>查找默认配置位置：find / -name &ldquo;rabbitmq.config.example&rdquo;，
+我这边搜索结果是：/usr/share/doc/rabbitmq-server-3.6.1/rabbitmq.config.example<br />
+复制默认配置：cp /usr/share/doc/rabbitmq-server-3.6.1/rabbitmq.config.example /etc/rabbitmq/<br />
+修改配置文件名：cd /etc/rabbitmq ; mv rabbitmq.config.example rabbitmq.config<br />
+编辑配置文件，开启用户远程访问：vim rabbitmq.config<br />
+在 64 行，默认有这样一句话：%% {loopback_users, []},，注意，该语句最后有一个逗号，等下是要去掉的<br />
+我们需要改为：{loopback_users, []}，<br />
+开启 Web 界面管理：rabbitmq-plugins enable rabbitmq_management<br />
+如果你是用 epel 安装的话，则是这样运行：cd /usr/lib/rabbitmq/bin;./rabbitmq-plugins enable rabbitmq_management<br />
+重启 RabbitMQ 服务：service rabbitmq-server restart<br />
+开放防火墙端口：<br />
+sudo iptables -I INPUT -p tcp -m tcp &ndash;dport 15672 -j ACCEPT<br />
+sudo iptables -I INPUT -p tcp -m tcp &ndash;dport 5672 -j ACCEPT<br />
+sudo service iptables save<br />
+sudo service iptables restart<br />
+浏览器访问：<a href="http://192.168.1.114:15672">http://192.168.1.114:15672</a> 默认管理员账号：guest 默认管理员密码：guest</p>
+
+<ol>
+<li><p>添加新授权用户（如下图所示）：<br />
+点击菜单，admin<br />
+loguser<br />
+loguser</p></li>
+
+<li><p>添加 Host<br />
+admin/ Virtual Hosts / Add a new virtual host</p></li>
+
+<li><p>给添加的 Host 设置权限
+virtual host : 选择新添加的host名称</p></li>
+
+<li><p>交换机绑定队列</p></li>
+</ol>
+
+<p>wget <a href="https://raw.githubusercontent.com/rabbitmq/rabbitmq-management/rabbitmq_v3_6_14/bin/rabbitmqadmin">https://raw.githubusercontent.com/rabbitmq/rabbitmq-management/rabbitmq_v3_6_14/bin/rabbitmqadmin</a>
+chmod +x rabbitmqadmin</p>
+
+<p>启用RabbitMQ的web管理功能
+/usr/lib/rabbitmq/bin/rabbitmq-plugins enable rabbitmq_management
+/usr/lib/rabbitmq/bin/rabbitmq-plugins list</p>
+
+<h2 id="集群配置">集群配置</h2>
+
+<p>通过 Erlang 的分布式特性（magic cookie 认证节点）进行 RabbitMQ 集群，各 RabbitMQ 服务为对等节点，即每个节点都提供服务给客户端连接，进行消息发送与接收。
+这些节点通过 RabbitMQ HA 队列（镜像队列）进行消息队列结构复制。本文中搭建 3 个节点，并且都是磁盘节点（所有节点状态保持一致，节点完全对等），只要有任何一个节点能够工作，RabbitMQ 集群对外就能提供服务。</p>
+
+<h2 id="rabbitmq-管理">rabbitmq 管理</h2>
+
+<p><a href="https://github.com/judasn/Linux-Tutorial/blob/master/RabbitMQ-Install-And-Settings.md">https://github.com/judasn/Linux-Tutorial/blob/master/RabbitMQ-Install-And-Settings.md</a></p>
+
+<p>Management Command Line Tool</p>
+
+<p>Getting Started</p>
+
+<p>UNIX-like operating system users need to copy rabbitmqadmin to a directory in PATH, e.g. /usr/local/bin.</p>
+
+<p>Windows users will need to ensure Python is on their PATH, and invoke rabbitmqadmin as python.exe rabbitmqadmin.</p>
+
+<p>Invoke rabbitmqadmin &ndash;help for usage instructions. You can:</p>
+
+<p>测试：
+Connect to another host as another user</p>
+
+<p>rabbitmqadmin -H 127.0.0.1 -uloguser -p loguser list vhosts</p>
+
+<p>Publish a message</p>
+
+<p>rabbitmqadmin publish exchange=amq.default routing_key=test payload=&ldquo;hello, world&rdquo;</p>
+
+<p>Close all connections</p>
+
+<p>rabbitmqadmin -f tsv -q list connections name | while read conn ; do rabbitmqadmin -q close connection name=&ldquo;${conn}&rdquo; ; done</p>
+</div>
+  </div>
+
+  <footer class="article-footer">
+    <div class="content-inner">
+
+      <nav class="p-crumb">
+        <ol>
+          <li><a href="https://webdroid163.github.io/books/"><i class="fa fa-home" aria-hidden="true"></i></a></li>
+          
+          <li itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="https://webdroid163.github.io/books/post/" itemprop="url"><span itemprop="title">post</span></a></li>
+          
+          <li class="active">rabbitmq install note</li>
+        </ol>
+      </nav>
+
+      
+      
+      
+      
+      
+      
+    </div>
+  </footer>
+
+</article>
+
+
+    
+  </div>
+
+  <div class="col-md-4">
+    <aside class="site">
+
+  <section>
+    <header>latests</header>
+    <div>
+      <div class="row">
+        
+        <div class="col-md-12 col-sm-6 col-xs-12"><article class="li sm">
+  <a href="https://webdroid163.github.io/books/post/rabbitmq_install/" class="thumb"></a>
+  <header>
+    <div class="title"><a href="https://webdroid163.github.io/books/post/rabbitmq_install/">rabbitmq install note</a></div>
+
+    <ul class="p-facts">
+      <li><i class="fa fa-calendar" aria-hidden="true"></i><time datetime="2017-12-06T10:42:26JST">Dec 6, 2017</time></li>
+      <li><i class="fa fa-bookmark" aria-hidden="true"></i><a href="https://webdroid163.github.io/books/post/">post</a></li>
+    </ul>
+  </header>
+</article>
+</div>
+        
+        
+        <div class="col-md-12 col-sm-6 col-xs-12"><article class="li sm">
+  <a href="https://webdroid163.github.io/books/post/good-to-great/" class="thumb"></a>
+  <header>
+    <div class="title"><a href="https://webdroid163.github.io/books/post/good-to-great/">good to great now</a></div>
+
+    <ul class="p-facts">
+      <li><i class="fa fa-calendar" aria-hidden="true"></i><time datetime="2016-10-17T10:42:26JST">Oct 17, 2016</time></li>
+      <li><i class="fa fa-bookmark" aria-hidden="true"></i><a href="https://webdroid163.github.io/books/post/">post</a></li>
+    </ul>
+  </header>
+</article>
+</div>
+        <div class="col-sm-12"></div>
+        
+      </div>
+    </div>
+  </section>
+
+  
+  <section>
+    <header>category</header>
+    <div>
+      <ul class="p-terms">
+        
+      </ul>
+    </div>
+  </section>
+  
+  <section>
+    <header>tag</header>
+    <div>
+      <ul class="p-terms">
+        
+      </ul>
+    </div>
+  </section>
+  
+
+</aside>
+
+  </div>
+</div>
+
+      </div>
+    </main>
+
+    <footer class="l-footer">
+      <div class="container">
+        <p><span class="h-logo">&copy; Houjj&#39;s book reviews</span></p>
+        <aside>
+          <p>Powered by <a href="https://gohugo.io/">Hugo</a>.</p>
+          <p><a href="https://github.com/dim0627/hugo_theme_robust">Robust</a> designed by <a href="http://yet.unresolved.xyz/">Daisuke Tsuji</a>.</p>
+        </aside>
+      </div>
+    </footer>
+
+    <script src="//code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+  </body>
+</html>
+

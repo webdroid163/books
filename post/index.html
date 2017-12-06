@@ -53,6 +53,40 @@
     <div class="row">
       
       <div class="col-sm-6 col-xs-12"><article class="li">
+  <a href="https://webdroid163.github.io/books/post/rabbitmq_install/" class="thumb"></a>
+  <div class="content-inner thin">
+    <h2 class="title"><a href="https://webdroid163.github.io/books/post/rabbitmq_install/">rabbitmq install note</a></h2>
+
+    <ul class="p-facts">
+      <li><i class="fa fa-calendar" aria-hidden="true"></i><time datetime="2017-12-06T10:42:26JST">Dec 6, 2017</time></li>
+      <li><i class="fa fa-bookmark" aria-hidden="true"></i><a href="https://webdroid163.github.io/books/post/">post</a></li>
+      
+    </ul>
+
+    <div class="summary">RabbitMQ是一个开源的AMQP实现，服务器端用Erlang语言编写，支持多种客户端，如：Python、Ruby、.NET、Java、JMS、C、PHP、ActionScript、XMPP、STOMP等，支持AJAX。用于在分布式系统中存储转发消息，在易用性、扩展性、高可用性等方面表现不俗。
+运行模式大概有3种：
+单一模式：非集群模式，单台。
+普通模式：RabbitMQ默认的集群模式。 对于Queue来说，消息实体只存在于其中一个节点，A、B两个节点仅有相同的元数据，即队列结构。当消息进入A节点的Queue中后，consumer从B节点拉取时，RabbitMQ会临时在A、B间进行消息传输，把A中的消息实体取出并经过B发送给consumer。 所以consumer应尽量连接每一个节点，从中取消息。即对于同一个逻辑队列，要在多个节点建立物理Queue。否则无论consumer连A或B，出口总在A，会产生瓶颈。 该模式存在一个问题就是当A节点故障后，B节点无法取到A节点中还未消费的消息实体。 如果做了消息持久化，那么得等A节点恢复，然后才可被消费；如果没有持久化会丢失消息。
+镜像模式：Queue同时存在多个节点，可通过改模式实现HA高可用
+该模式解决了上述问题，其实质和普通模式不同之处在于，消息实体会主动在镜像节点间同步，而不是在consumer取数据时临时拉取。 该模式带来的副作用也很明显，除了降低系统性能外，如果镜像队列数量过多，加之大量的消息进入，集群内部的网络带宽将会被这种同步通讯大大消耗掉。
+单一模式 installing(安装) 系统centos7
+wget https://dl.bintray.com/rabbitmq/rabbitmq-server-rpm/rabbitmq-server-3.6.14-1.el7.noarch.rpm
+安装RabbitMQ Server
+rpm -ivh rabbitmq-server-3.6.14-1.el7.noarch.rpm
+warning: rabbitmq-server-3.6.14-1.el7.noarch.rpm: Header V4 RSA/SHA512 Signature, key ID 6026dfca: NOKEY
+error: Failed dependencies: erlang &gt;= R16B-03 is needed by rabbitmq-server-3.6.14-1.el7.noarch socat is needed by rabbitmq-server-3.6.14-1.el7.noarch
+yum search erlang socat
+yum install erlang
+如果yum出现“No module named yum”错误，修改yum文件 vi /usr/bin/yum !/usr/bin/python 修改为 #!/usr/bin/python2.4
+安装完成后可以用erl命令查看是否安装成功
+erl -version
+安装Web管理界面插件 rabbitmq-plugins enable rabbitmq_management</div>
+  </div>
+</article>
+</div>
+      
+      
+      <div class="col-sm-6 col-xs-12"><article class="li">
   <a href="https://webdroid163.github.io/books/post/good-to-great/" class="thumb"></a>
   <div class="content-inner thin">
     <h2 class="title"><a href="https://webdroid163.github.io/books/post/good-to-great/">good to great now</a></h2>
@@ -63,11 +97,11 @@
       
     </ul>
 
-    <div class="summary">I read Good to Great in January 2016. An awesome read sharing detailed analysis on how good companies became great.</div>
+    <div class="summary">I read Good to Great in January 2016. An awesome read sharing detailed analysis on how good companies became great. I read Good to Great in January 2016. An awesome read sharing detailed analysis on how good companies became great.</div>
   </div>
 </article>
 </div>
-      
+      <div class="col-sm-12"></div>
       
     </div>
 
@@ -83,6 +117,20 @@
       <div class="row">
         
         <div class="col-md-12 col-sm-6 col-xs-12"><article class="li sm">
+  <a href="https://webdroid163.github.io/books/post/rabbitmq_install/" class="thumb"></a>
+  <header>
+    <div class="title"><a href="https://webdroid163.github.io/books/post/rabbitmq_install/">rabbitmq install note</a></div>
+
+    <ul class="p-facts">
+      <li><i class="fa fa-calendar" aria-hidden="true"></i><time datetime="2017-12-06T10:42:26JST">Dec 6, 2017</time></li>
+      <li><i class="fa fa-bookmark" aria-hidden="true"></i><a href="https://webdroid163.github.io/books/post/">post</a></li>
+    </ul>
+  </header>
+</article>
+</div>
+        
+        
+        <div class="col-md-12 col-sm-6 col-xs-12"><article class="li sm">
   <a href="https://webdroid163.github.io/books/post/good-to-great/" class="thumb"></a>
   <header>
     <div class="title"><a href="https://webdroid163.github.io/books/post/good-to-great/">good to great now</a></div>
@@ -94,7 +142,7 @@
   </header>
 </article>
 </div>
-        
+        <div class="col-sm-12"></div>
         
       </div>
     </div>
