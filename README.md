@@ -25,7 +25,10 @@ vsftpd nginx tomcat sshd httpd lighttpd jetty undertow
 centos windows mac docker xenserver redhat
 
 ## distributed cluster
-zookeeper dubbo springcloud activemq solrcloud elasticsearch ELK redis-sentinel 
+zookeeper dubbo springcloud activemq rabbitmq solrcloud elasticsearch ELK redis-sentinel kafka 
+
+## bigdata cluster 
+hadoop hdfs spark 
 
 ## 系统架构
 
